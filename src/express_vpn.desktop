@@ -1,0 +1,8 @@
+[Xfce Panel]
+Type=X-XFCE-PanelPlugin
+Encoding=UTF-8
+Name=ExpressVPN
+Comment=XFCE Plugin for ExpressVPN
+Icon=gnome-fs-executable
+X-XFCE-Module=express_vpn
+X-XFCE-Module-Path=/usr/lib/x86_64-linux-gnu/xfce4/panel-plugins/
