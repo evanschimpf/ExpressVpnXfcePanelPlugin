@@ -18,6 +18,7 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 #include <gtk/gtk.h>
 #include <libxfce4util/libxfce4util.h>
 #include <libxfce4panel/xfce-panel-plugin.h>
@@ -130,10 +131,10 @@ update_preferences(ExpressVpnPlugin *expressVpn)
 
   // Block signals on autoconnect menu items
   g_signal_handlers_block_by_func(G_OBJECT(expressVpn->autoConnectEnabledCheckMenuItem),
-                                  auto_connect_enabled_menu_item_handler,
+                                  auto_connect_menu_item_handler,
                                   expressVpn);
   g_signal_handlers_block_by_func(G_OBJECT(expressVpn->autoConnectDisabledCheckMenuItem),
-                                  auto_connect_disabled_menu_item_handler,
+                                  auto_connect_menu_item_handler,
                                   expressVpn);
 
   // Update autoconnect menu items
@@ -144,21 +145,21 @@ update_preferences(ExpressVpnPlugin *expressVpn)
 
   // Unblock signals on menu items
   g_signal_handlers_unblock_by_func(G_OBJECT(expressVpn->autoConnectEnabledCheckMenuItem),
-                                    auto_connect_enabled_menu_item_handler,
+                                    auto_connect_menu_item_handler,
                                     expressVpn);
   g_signal_handlers_unblock_by_func(G_OBJECT(expressVpn->autoConnectDisabledCheckMenuItem),
-                                    auto_connect_disabled_menu_item_handler,
+                                    auto_connect_menu_item_handler,
                                     expressVpn);
 
   // Block signals on protocol menu items
   g_signal_handlers_block_by_func(G_OBJECT(expressVpn->protocolAutoCheckMenuItem),
-                                  protocol_auto_menu_item_handler,
+                                  protocol_menu_item_handler,
                                   expressVpn);
   g_signal_handlers_block_by_func(G_OBJECT(expressVpn->protocolTcpCheckMenuItem),
-                                  protocol_tcp_menu_item_handler,
+                                  protocol_menu_item_handler,
                                   expressVpn);
   g_signal_handlers_block_by_func(G_OBJECT(expressVpn->protocolUdpCheckMenuItem),
-                                  protocol_udp_menu_item_handler,
+                                  protocol_menu_item_handler,
                                   expressVpn);
 
   // Update protocol menu items
@@ -171,13 +172,13 @@ update_preferences(ExpressVpnPlugin *expressVpn)
 
   // Unblock signals on protocol menu items
   g_signal_handlers_unblock_by_func(G_OBJECT(expressVpn->protocolAutoCheckMenuItem),
-                                    protocol_auto_menu_item_handler,
+                                    protocol_menu_item_handler,
                                     expressVpn);
   g_signal_handlers_unblock_by_func(G_OBJECT(expressVpn->protocolTcpCheckMenuItem),
-                                    protocol_tcp_menu_item_handler,
+                                    protocol_menu_item_handler,
                                     expressVpn);
   g_signal_handlers_unblock_by_func(G_OBJECT(expressVpn->protocolUdpCheckMenuItem),
-                                    protocol_udp_menu_item_handler,
+                                    protocol_menu_item_handler,
                                     expressVpn);
 }
 
@@ -246,6 +247,8 @@ update_servers(ExpressVpnPlugin *expressVpn)
       menuItem = gtk_menu_item_new_with_label(expressVpnServer->country);
       gtk_widget_show(menuItem);
       gtk_menu_append(GTK_MENU(expressVpn->connectCountryMenu), menuItem);
+      g_signal_connect(G_OBJECT(menuItem), "activate",
+                       G_CALLBACK(connect_country_item_handler), expressVpn);
       expressVpn->countryMenuItemList = g_list_prepend(expressVpn->countryMenuItemList,
                                                        menuItem);
     }
@@ -305,7 +308,6 @@ update_servers(ExpressVpnPlugin *expressVpn)
                                                         menuItem);
     }
 
-
     // Break out of while true if reached end of list
     if(end_of_list)
       break;
@@ -357,58 +359,90 @@ connect_smart_menu_item_handler(GtkMenuItem *menuItem,
   update(expressVpn);
 }
 
-// Handler for "activate" signal on autoConnectEnabledCheckMenuItem
-static void
-auto_connect_enabled_menu_item_handler(GtkMenuItem *menuItem,
-                                       ExpressVpnPlugin *expressVpn)
-{
-  execute_command("expressvpn autoconnect true", temp_buf, BUFFER_SIZE);
-  update(expressVpn);
-}
-
-// Handler for "activate" signal on autoConnectDisabledCheckMenuItem
-static void
-auto_connect_disabled_menu_item_handler(GtkMenuItem *menuItem,
-                                        ExpressVpnPlugin *expressVpn)
-{
-  execute_command("expressvpn autoconnect false", temp_buf, BUFFER_SIZE);
-  update(expressVpn);
-}
-
-// Handler for "activate" signal on protocolAutoCheckMenuItem
-static void
-protocol_auto_menu_item_handler(GtkMenuItem *menuItem,
-                                ExpressVpnPlugin *expressVpn)
-{
-  execute_command("expressvpn protocol auto", temp_buf, BUFFER_SIZE);
-  update(expressVpn);
-}
-
-// Handler for "activate" signal on protocolTCPCheckMenuItem
-static void
-protocol_tcp_menu_item_handler(GtkMenuItem *menuItem,
-                               ExpressVpnPlugin *expressVpn)
-{
-  execute_command("expressvpn protocol tcp", temp_buf, BUFFER_SIZE);
-  update(expressVpn);
-}
-
-// Handler for "activate" signal on protocolUdpCheckMenuItem
-static void
-protocol_udp_menu_item_handler(GtkMenuItem *menuItem,
-                               ExpressVpnPlugin *expressVpn)
-{
-  execute_command("expressvpn protocol udp", temp_buf, BUFFER_SIZE);
-  update(expressVpn);
-}
-
+// Connects to a specific server
 static void
 connect_location_item_handler(GtkMenuItem *menuItem,
                               ExpressVpnPlugin *expressVpn)
 {
-  gchar temp[PATH_MAX];
-  sprintf(temp, "expressvpn connect %s", gtk_widget_get_name(GTK_WIDGET(menuItem)));
-  execute_command(temp, temp_buf, BUFFER_SIZE);
+  gchar command_buffer[PATH_MAX];
+  sprintf(command_buffer, "expressvpn connect %s",
+          gtk_widget_get_name(GTK_WIDGET(menuItem)));
+  execute_command(command_buffer, temp_buf, BUFFER_SIZE);
+  update(expressVpn);
+}
+
+// Connects to a specific country
+static void
+connect_country_item_handler(GtkMenuItem *menuItem,
+                             ExpressVpnPlugin *expressVpn)
+{
+  gchar  command_buffer[PATH_MAX];
+  gchar  country_buffer[PATH_MAX];
+  gchar *country_label;
+  gchar *ptr;
+  gint   chars_to_copy;
+
+  // Zero out memory
+  memset(command_buffer, 0, PATH_MAX);
+  memset(country_buffer, 0, PATH_MAX);
+
+  // Set country_label to the label of the clicked menu item
+  country_label = (gchar*)gtk_menu_item_get_label(menuItem);
+
+  // Find the location of the first '(', will indicate end of string used for command
+  ptr = memchr(country_label, '(', PATH_MAX);
+
+  if(!ptr)
+  {
+    // Something is wrong, no '(' found
+    return;
+  }
+
+  // Determine number of characters to copy
+  chars_to_copy = ptr - country_label - 1;
+
+  // Copy country into country_buffer
+  strncpy(country_buffer, country_label, chars_to_copy);
+
+  // Build command string
+  sprintf(command_buffer, "expressvpn connect %s", country_buffer);
+
+  // Execute command and update GUI
+  execute_command(command_buffer, temp_buf, BUFFER_SIZE);
+  update(expressVpn);
+}
+
+// Handler for "activate" signal on auto connect menu items
+static void
+auto_connect_menu_item_handler(GtkMenuItem *menuItem,
+                               ExpressVpnPlugin *expressVpn)
+{
+  const gchar *label = gtk_menu_item_get_label(menuItem);
+
+  // Label will be "Enabled" or "Disabled". Check first char of label
+  if(*label == 'E')
+    execute_command("expressvpn autoconnect true", temp_buf, BUFFER_SIZE);
+  else // (*label == 'D')
+    execute_command("expressvpn autoconnect false", temp_buf, BUFFER_SIZE);
+
+  update(expressVpn);
+}
+
+// Handler for "activate" signal on protocol menu items
+static void
+protocol_menu_item_handler(GtkMenuItem *menuItem,
+                           ExpressVpnPlugin *expressVpn)
+{
+  const gchar *label = gtk_menu_item_get_label(menuItem);
+
+  // Label will be "Auto", "TCP" or "UDP". Check first char of label
+  if(*label == 'A')
+    execute_command("expressvpn protocol auto", temp_buf, BUFFER_SIZE);
+  else if(*label == 'T')
+    execute_command("expressvpn protocol tcp", temp_buf, BUFFER_SIZE);
+  else // (*label == 'U')
+    execute_command("expressvpn protocol udp", temp_buf, BUFFER_SIZE);
+
   update(expressVpn);
 }
 
@@ -587,7 +621,7 @@ express_vpn_new(XfcePanelPlugin *plugin)
   gtk_menu_append(GTK_MENU(expressVpn->autoConnectMenu),
                   expressVpn->autoConnectEnabledCheckMenuItem);
   g_signal_connect(G_OBJECT(expressVpn->autoConnectEnabledCheckMenuItem), "activate",
-                   G_CALLBACK(auto_connect_enabled_menu_item_handler), expressVpn);
+                   G_CALLBACK(auto_connect_menu_item_handler), expressVpn);
 
   // Initialize autoConnectDisabledCheckMenuItem, add it to the autoConnectMenu
   expressVpn->autoConnectDisabledCheckMenuItem = gtk_check_menu_item_new_with_label("Disabled");
@@ -595,7 +629,7 @@ express_vpn_new(XfcePanelPlugin *plugin)
   gtk_menu_append(GTK_MENU(expressVpn->autoConnectMenu),
                   expressVpn->autoConnectDisabledCheckMenuItem);
   g_signal_connect(G_OBJECT(expressVpn->autoConnectDisabledCheckMenuItem), "activate",
-                   G_CALLBACK(auto_connect_disabled_menu_item_handler), expressVpn);
+                   G_CALLBACK(auto_connect_menu_item_handler), expressVpn);
   /* ------ END autoConnectMenu ------ */
 
   // Initialize protocolMenuItem, add it to the main menu
@@ -616,7 +650,7 @@ express_vpn_new(XfcePanelPlugin *plugin)
   gtk_menu_append(GTK_MENU(expressVpn->protocolMenu),
                   expressVpn->protocolAutoCheckMenuItem);
   g_signal_connect(G_OBJECT(expressVpn->protocolAutoCheckMenuItem), "activate",
-                   G_CALLBACK(protocol_auto_menu_item_handler), expressVpn);
+                   G_CALLBACK(protocol_menu_item_handler), expressVpn);
 
   // Initialize protocolTcpCheckMenuItem, add it to the protocolMenu
   expressVpn->protocolTcpCheckMenuItem = gtk_check_menu_item_new_with_label("TCP");
@@ -624,7 +658,7 @@ express_vpn_new(XfcePanelPlugin *plugin)
   gtk_menu_append(GTK_MENU(expressVpn->protocolMenu),
                   expressVpn->protocolTcpCheckMenuItem);
   g_signal_connect(G_OBJECT(expressVpn->protocolTcpCheckMenuItem), "activate",
-                   G_CALLBACK(protocol_tcp_menu_item_handler), expressVpn);
+                   G_CALLBACK(protocol_menu_item_handler), expressVpn);
 
   // Initialize protocolUdpCheckMenuItem, add it to the protocolMenu
   expressVpn->protocolUdpCheckMenuItem = gtk_check_menu_item_new_with_label("UDP");
@@ -632,7 +666,7 @@ express_vpn_new(XfcePanelPlugin *plugin)
   gtk_menu_append(GTK_MENU(expressVpn->protocolMenu),
                   expressVpn->protocolUdpCheckMenuItem);
   g_signal_connect(G_OBJECT(expressVpn->protocolUdpCheckMenuItem), "activate",
-                   G_CALLBACK(protocol_udp_menu_item_handler), expressVpn);
+                   G_CALLBACK(protocol_menu_item_handler), expressVpn);
   /* ------ END protocolMenu ------ */
 
   // Add another seperator to the menu

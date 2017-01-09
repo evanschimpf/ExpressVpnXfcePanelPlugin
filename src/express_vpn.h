@@ -32,7 +32,7 @@
 
 #define ICON_PATH                   "/home/evan/Projects/ExpressVpnXfcePanelPlugin/res/express_vpn_icon_16.png"
 
-// Macro for skipping spaces while parsing string
+// Macro for skipping character while parsing string
 #define skip_char(str, c)   while(*str == c) str++
 
 #define skip_tabs(str)      skip_char(str, '\t')
@@ -172,15 +172,10 @@ express_vpn_orientation_changed(XfcePanelPlugin  *plugin,
                                 GtkOrientation    orientation,
                                 ExpressVpnPlugin *expressVpn);
 
-static void
-express_vpn_orientation_changed(XfcePanelPlugin  *plugin,
-                                GtkOrientation    orientation,
-                                ExpressVpnPlugin *expressVpn);
-
 static gboolean
 express_vpn_size_changed(XfcePanelPlugin  *plugin,
-                        gint              size,
-                        ExpressVpnPlugin *expressVpn);
+                         gint              size,
+                         ExpressVpnPlugin *expressVpn);
 
 static void
 express_vpn_about(XfcePanelPlugin *plugin);
@@ -200,37 +195,21 @@ disconnect_menu_item_handler(GtkMenuItem *menuItem,
 static void
 connect_smart_menu_item_handler(GtkMenuItem *menuItem,
                                 ExpressVpnPlugin *expressVpn);
-static void
-
-auto_connect_enabled_menu_item_handler(GtkMenuItem *menuItem,
-                                       ExpressVpnPlugin *expressVpn);
-
-static void
-auto_connect_disabled_menu_item_handler(GtkMenuItem *menuItem,
-                                        ExpressVpnPlugin *expressVpn);
-
-static void
-protocol_auto_menu_item_handler(GtkMenuItem *menuItem,
-                                ExpressVpnPlugin *expressVpn);
-
-static void
-protocol_tcp_menu_item_handler(GtkMenuItem *menuItem,
-                               ExpressVpnPlugin *expressVpn);
-
-static void
-protocol_udp_menu_item_handler(GtkMenuItem *menuItem,
-                               ExpressVpnPlugin *expressVpn);
-
-static void
-auto_connect_enabled_menu_item_handler(GtkMenuItem *menuItem,
-                                       ExpressVpnPlugin *expressVpn);
-
-static void
-auto_connect_disabled_menu_item_handler(GtkMenuItem *menuItem,
-                                        ExpressVpnPlugin *expressVpn);
 
 static void
 connect_location_item_handler(GtkMenuItem *menuItem,
                               ExpressVpnPlugin *expressVpn);
+
+static void
+connect_country_item_handler(GtkMenuItem *menuItem,
+                             ExpressVpnPlugin *expressVpn);
+
+static void
+auto_connect_menu_item_handler(GtkMenuItem *menuItem,
+                               ExpressVpnPlugin *expressVpn);
+
+static void
+protocol_menu_item_handler(GtkMenuItem *menuItem,
+                           ExpressVpnPlugin *expressVpn);
 
 #endif
