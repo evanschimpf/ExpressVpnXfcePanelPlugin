@@ -30,7 +30,14 @@
 #define EXPRESS_VPN_PROTOCOL_TCP    1
 #define EXPRESS_VPN_PROTOCOL_UDP    2
 
-#define ICON_PATH                   "/home/evan/Projects/ExpressVpnXfcePanelPlugin/res/express_vpn_icon_16.png"
+#define ICON_RED_PATH               "/home/evan/Projects/ExpressVpnXfcePanelPlugin/res/express_vpn_icon_red_16.png"
+#define ICON_GREEN_PATH             "/home/evan/Projects/ExpressVpnXfcePanelPlugin/res/express_vpn_icon_green_16.png"
+#define ICON_YELLOW_PATH            "/home/evan/Projects/ExpressVpnXfcePanelPlugin/res/express_vpn_icon_yellow_16.png"
+
+#define PROGRAM_NAME                "ExpressVpnPlugin"
+#define PROGRAM_VERSION             "0.1"
+#define PROGRAM_COMMENTS            "Xfce Plugin for ExpressVpn"
+
 
 // Macro for skipping character while parsing string
 #define skip_char(str, c)   while(*str == c) str++
@@ -87,7 +94,10 @@ typedef struct
   GtkWidget          *menuBar;
 
   GtkWidget          *imageMenuItem;
-  GtkWidget          *icon;
+
+  GtkWidget          *iconRed;
+  GtkWidget          *iconGreen;
+  GtkWidget          *iconYellow;
 
   GtkWidget          *statusMenuItem;
 

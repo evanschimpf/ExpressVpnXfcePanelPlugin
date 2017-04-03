@@ -81,6 +81,18 @@ update_status(ExpressVpnPlugin *expressVpn)
   // Set status label with new status
   gtk_menu_item_set_label(GTK_MENU_ITEM(expressVpn->statusMenuItem),
                           expressVpn->status);
+
+/*
+  // Check if status is "Not connected.", update icon
+  if(expressVpn->status[0] == 'N') {
+    gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(expressVpn->imageMenuItem),
+                                  expressVpn->iconRed);
+  } else {
+    gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(expressVpn->imageMenuItem),
+                                  expressVpn->iconGreen);
+  }
+*/
+
 }
 
 // Updates preferences for the plugin
@@ -317,10 +329,10 @@ update_servers(ExpressVpnPlugin *expressVpn)
   }
 
   // Reverse lists, they were prepended for runtime efficiency
-  expressVpn->locationList = g_list_reverse(expressVpn->locationList);
-  expressVpn->locationMenuItemList = g_list_reverse(expressVpn->locationMenuItemList);
+  expressVpn->locationList            = g_list_reverse(expressVpn->locationList);
+  expressVpn->locationMenuItemList    = g_list_reverse(expressVpn->locationMenuItemList);
   expressVpn->recommendedMenuItemList = g_list_reverse(expressVpn->recommendedMenuItemList);
-  expressVpn->countryMenuItemList = g_list_reverse(expressVpn->countryMenuItemList);
+  expressVpn->countryMenuItemList     = g_list_reverse(expressVpn->countryMenuItemList);
 }
 
 // Updates the status and proferences for the plugin
@@ -474,8 +486,11 @@ express_vpn_new(XfcePanelPlugin *plugin)
   // Add hvbox to ebox
   gtk_container_add(GTK_CONTAINER(expressVpn->ebox), expressVpn->hvbox);
 
-  // Initialize icon
-  expressVpn->icon = gtk_image_new_from_file(ICON_PATH);
+  // Initialize icons
+  expressVpn->iconRed     = gtk_image_new_from_file(ICON_RED_PATH);
+  expressVpn->iconGreen   = gtk_image_new_from_file(ICON_GREEN_PATH);
+  expressVpn->iconYellow  = gtk_image_new_from_file(ICON_YELLOW_PATH);
+
 
   // Initialize menuBar
   expressVpn->menuBar = gtk_menu_bar_new();
@@ -490,7 +505,7 @@ express_vpn_new(XfcePanelPlugin *plugin)
 
   // Set image for imageMenuItem
   gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(expressVpn->imageMenuItem),
-                                expressVpn->icon);
+                                expressVpn->iconRed);
 
   // Set imageMenuItem to always show image since there is no label.
   gtk_image_menu_item_set_always_show_image(
@@ -757,7 +772,18 @@ express_vpn_size_changed(XfcePanelPlugin  *plugin,
 static void
 express_vpn_about(XfcePanelPlugin *plugin)
 {
-  // About dialog code. You can use the GtkAboutDialog or the XfceAboutInto widget
+  // About dialog code. You can use the GtkAboutDialog or the XfceAboutInfo widget
+
+  // Create new about dialog object
+  GtkWidget *aboutDialog = gtk_about_dialog_new();
+
+  // Setup about dialog
+  gtk_about_dialog_set_program_name(GTK_ABOUT_DIALOG(aboutDialog), PROGRAM_VERSION);
+  gtk_about_dialog_set_version     (GTK_ABOUT_DIALOG(aboutDialog), PROGRAM_NAME);
+  gtk_about_dialog_set_comments    (GTK_ABOUT_DIALOG(aboutDialog), PROGRAM_COMMENTS);
+
+  // Show
+  //gtk_show_about_dialog(GTK_ABOUT_DIALOG(aboutDialog));
 }
 
 // Constructor for plugin
