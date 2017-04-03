@@ -82,17 +82,16 @@ update_status(ExpressVpnPlugin *expressVpn)
   gtk_menu_item_set_label(GTK_MENU_ITEM(expressVpn->statusMenuItem),
                           expressVpn->status);
 
-/*
   // Check if status is "Not connected.", update icon
   if(expressVpn->status[0] == 'N') {
-    gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(expressVpn->imageMenuItem),
-                                  expressVpn->iconRed);
+    gtk_widget_show(expressVpn->iconRed);
+    gtk_widget_hide(expressVpn->iconYellow);
+    gtk_widget_hide(expressVpn->iconGreen);
   } else {
-    gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(expressVpn->imageMenuItem),
-                                  expressVpn->iconGreen);
+    gtk_widget_hide(expressVpn->iconRed);
+    gtk_widget_hide(expressVpn->iconYellow);
+    gtk_widget_show(expressVpn->iconGreen);
   }
-*/
-
 }
 
 // Updates preferences for the plugin
@@ -500,9 +499,22 @@ express_vpn_new(XfcePanelPlugin *plugin)
   expressVpn->menu = gtk_menu_new();
 
   // Initialize imageMenuItem
-  expressVpn->imageMenuItem = gtk_image_menu_item_new();
-  gtk_widget_show(expressVpn->imageMenuItem);
+  expressVpn->iconMenuItem = gtk_menu_item_new();
 
+  // Inialize GTK_BOX for icon
+  expressVpn->iconMenuItemBox = gtk_hbox_new(GTK_ORIENTATION_HORIZONTAL, 0);
+
+  // Pack the icons into the box
+  gtk_box_pack_start(GTK_BOX(expressVpn->iconMenuItemBox), expressVpn->iconRed, 1, 1, 0);
+  gtk_box_pack_start(GTK_BOX(expressVpn->iconMenuItemBox), expressVpn->iconYellow, 1, 1, 0);
+  gtk_box_pack_start(GTK_BOX(expressVpn->iconMenuItemBox), expressVpn->iconGreen, 1, 1, 0);
+
+  // Add the box to the imageMenuItem
+  gtk_container_add(GTK_CONTAINER(expressVpn->iconMenuItem), expressVpn->iconMenuItemBox);
+
+  gtk_widget_show_all(expressVpn->iconMenuItem);
+
+/*
   // Set image for imageMenuItem
   gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(expressVpn->imageMenuItem),
                                 expressVpn->iconRed);
@@ -510,14 +522,15 @@ express_vpn_new(XfcePanelPlugin *plugin)
   // Set imageMenuItem to always show image since there is no label.
   gtk_image_menu_item_set_always_show_image(
     GTK_IMAGE_MENU_ITEM(expressVpn->imageMenuItem), TRUE);
+*/
 
   // Set menu as the submenu for imageMenuItem
-  gtk_menu_item_set_submenu(GTK_MENU_ITEM(expressVpn->imageMenuItem),
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(expressVpn->iconMenuItem),
                             expressVpn->menu);
 
   // Append imageMenuItem to menuBar
   gtk_menu_bar_append(GTK_MENU_BAR(expressVpn->menuBar),
-                      expressVpn->imageMenuItem);
+                      expressVpn->iconMenuItem);
 
   // Initialize statusMenuItem, add it to the main menu
   expressVpn->statusMenuItem = gtk_menu_item_new_with_label("Status");

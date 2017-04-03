@@ -93,7 +93,9 @@ typedef struct
   GtkWidget          *menu;
   GtkWidget          *menuBar;
 
-  GtkWidget          *imageMenuItem;
+  GtkWidget          *iconMenuItem;
+  GtkWidget          *iconMenuItemBox;
+  //GtkWidget          *imageMenuItem;
 
   GtkWidget          *iconRed;
   GtkWidget          *iconGreen;
