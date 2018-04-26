@@ -1,0 +1,1 @@
+sudo apt install build-essential xfce4ui-common xfce4ui-2-0 libgtk-2.0-dev libgtk-3-dev xfce4-panel-dev
