@@ -274,7 +274,7 @@ update_servers(ExpressVpnPlugin *expressVpn)
     }
 
     // Advance until 'Y', '\n', or '\0' is encountered
-    while(*ptr != 'Y' && (*ptr != '\n' && ptr != '\0'))
+    while(*ptr != 'Y' && (*ptr != '\n' && *ptr != '\0'))
       ptr++;
 
     // Set recommended
