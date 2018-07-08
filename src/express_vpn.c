@@ -32,36 +32,53 @@ XFCE_PANEL_PLUGIN_REGISTER(express_vpn_construct);
 // Temporary buffer used for executing commands
 gchar temp_buf[BUFFER_SIZE];
 
+static gint
+strip_ansi_color_code(gchar *buffer,
+                      gint   buffer_size)
+{
+  gchar *temp_buffer[BUFFER_SIZE];
+  gchar *temp_buffer_ptr;
+  gchar *buffer_ptr;
+
+  // Set pointers to start of buffers
+  temp_buffer_ptr = temp_buffer;
+  buffer_ptr = buffer;
+
+  while(*temp_buffer_ptr != '\0' && )
+}
+
 // Executes a command and stores the result in the return buffer
 static gint
 execute_command(gchar *command,
                 gchar *return_buffer,
                 gint   return_buffer_size)
 {
-  // Working solution, read in one character at a time. Downside is that this
-  // causes special characters (to change console color) to be read into the buffer
   FILE *fp;
+  char buffer[BUFFER_SIZE];
+
   gint i;
   gint character;
-
-  memset(return_buffer, 0, return_buffer_size);
 
   fp = popen(command, "r");
   if(fp == NULL)
     return -1;
 
   i = 0;
-  while (i<return_buffer_size)
+  while (i<BUFFER_SIZE)
   {
     character = fgetc(fp);
     if(character == EOF)
       break;
 
-    return_buffer[i++] = (gchar) character;
+    buffer[i++] = (gchar) character;
   }
 
-  //g_message("Command:\n%s", command);
-  //g_message("Returned:\n%s", return_buffer);
+
+
+#ifdef DEBUG
+  g_message("Command:\n%s", command);
+  g_message("Returned:\n%s", return_buffer);
+#endif
 
   return pclose(fp);
 }
@@ -289,9 +306,11 @@ update_servers(ExpressVpnPlugin *expressVpn)
     if(*ptr == '\0' || *(ptr+1) == '\0')
       end_of_list = TRUE;
 
+#ifdef DEBUG
     g_message("Alias: %s, Country: %s, Location: %s, Recommended: %d",
               expressVpnServer->alias, expressVpnServer->country,
               expressVpnServer->location, expressVpnServer->recommended);
+#endif
 
     // Add server to the list
     expressVpn->locationList = g_list_prepend(expressVpn->locationList,

@@ -39,12 +39,12 @@
 #define PROGRAM_COMMENTS            "Xfce Plugin for ExpressVpn"
 
 
-// Macro for skipping character while parsing string
+// Utility macros
 #define skip_char(str, c)   while(*str == c) str++
-
 #define skip_tabs(str)      skip_char(str, '\t')
-
 #define next_line(str)      do { str++; } while(*(str-1) != '\n' && *str)
+
+
 /*
 -----------------------------------------
 ---------------- Structs ----------------
@@ -155,6 +155,10 @@ ExpressVpnServer;
 ---------- Function Prototypes ----------
 -----------------------------------------
 */
+static gint
+strip_ansi_color_code(gchar *buffer,
+                      gint   buffer_size);
+
 static gint
 execute_command(gchar *command,
                 gchar *return_buffer,
