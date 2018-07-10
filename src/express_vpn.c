@@ -32,19 +32,37 @@ XFCE_PANEL_PLUGIN_REGISTER(express_vpn_construct);
 // Temporary buffer used for executing commands
 gchar temp_buf[BUFFER_SIZE];
 
+// Removes ANSI color codes
 static gint
 strip_ansi_color_code(gchar *buffer,
                       gint   buffer_size)
 {
-  gchar *temp_buffer[BUFFER_SIZE];
+  gchar *temp_buffer;
   gchar *temp_buffer_ptr;
   gchar *buffer_ptr;
+
+  // Allocate memory for temp buffer, ensure memory was allocated correctly
+  temp_buffer = (gchar*)malloc(buffer_size);
+  if(!temp_buffer)
+    return -1;
 
   // Set pointers to start of buffers
   temp_buffer_ptr = temp_buffer;
   buffer_ptr = buffer;
 
-  while(*temp_buffer_ptr != '\0' && )
+  while(1)
+  {
+    if(*buffer == '\e')
+    {
+      // Advance past 'm' is found;
+      while(*buffer != 'm')
+        buffer++;
+      buffer++;
+    }
+  }
+
+  free(temp_buffer);
+  return 0;
 }
 
 // Executes a command and stores the result in the return buffer
@@ -73,8 +91,6 @@ execute_command(gchar *command,
     buffer[i++] = (gchar) character;
   }
 
-
-
 #ifdef DEBUG
   g_message("Command:\n%s", command);
   g_message("Returned:\n%s", return_buffer);
@@ -100,6 +116,7 @@ update_status(ExpressVpnPlugin *expressVpn)
                           expressVpn->status);
 
   // Check if status is "Not connected.", update icon
+  // TODO: change so that default is red icon
   if(expressVpn->status[0] == 'N') {
     gtk_widget_show(expressVpn->iconRed);
     gtk_widget_hide(expressVpn->iconYellow);
@@ -505,10 +522,9 @@ express_vpn_new(XfcePanelPlugin *plugin)
   gtk_container_add(GTK_CONTAINER(expressVpn->ebox), expressVpn->hvbox);
 
   // Initialize icons
-  expressVpn->iconRed     = gtk_image_new_from_file(ICON_RED_PATH);
   expressVpn->iconGreen   = gtk_image_new_from_file(ICON_GREEN_PATH);
   expressVpn->iconYellow  = gtk_image_new_from_file(ICON_YELLOW_PATH);
-
+  expressVpn->iconRed     = gtk_image_new_from_file(ICON_RED_PATH);
 
   // Initialize menuBar
   expressVpn->menuBar = gtk_menu_bar_new();
@@ -524,9 +540,9 @@ express_vpn_new(XfcePanelPlugin *plugin)
   expressVpn->iconMenuItemBox = gtk_hbox_new(GTK_ORIENTATION_HORIZONTAL, 0);
 
   // Pack the icons into the box
-  gtk_box_pack_start(GTK_BOX(expressVpn->iconMenuItemBox), expressVpn->iconRed, 1, 1, 0);
-  gtk_box_pack_start(GTK_BOX(expressVpn->iconMenuItemBox), expressVpn->iconYellow, 1, 1, 0);
   gtk_box_pack_start(GTK_BOX(expressVpn->iconMenuItemBox), expressVpn->iconGreen, 1, 1, 0);
+  gtk_box_pack_start(GTK_BOX(expressVpn->iconMenuItemBox), expressVpn->iconYellow, 1, 1, 0);
+  gtk_box_pack_start(GTK_BOX(expressVpn->iconMenuItemBox), expressVpn->iconRed, 1, 1, 0);
 
   // Add the box to the imageMenuItem
   gtk_container_add(GTK_CONTAINER(expressVpn->iconMenuItem), expressVpn->iconMenuItemBox);
@@ -782,8 +798,8 @@ express_vpn_orientation_changed(XfcePanelPlugin  *plugin,
 // Handler for "size-changed" signal
 static gboolean
 express_vpn_size_changed(XfcePanelPlugin  *plugin,
-                        gint              size,
-                        ExpressVpnPlugin *expressVpn)
+                         gint              size,
+                         ExpressVpnPlugin *expressVpn)
 {
   GtkOrientation orientation;
 
