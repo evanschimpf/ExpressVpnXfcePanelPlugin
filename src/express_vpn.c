@@ -39,7 +39,9 @@ strip_ansi_color_code(gchar *buffer,
 {
   gchar *temp_buffer;
   gchar *temp_buffer_ptr;
-  gchar *buffer_ptr;
+  gchar *buffer_ptr_start;
+  gchar *buffer_ptr_end;
+  gint copy_size;
 
   // Allocate memory for temp buffer, ensure memory was allocated correctly
   temp_buffer = (gchar*)malloc(buffer_size);
@@ -48,18 +50,55 @@ strip_ansi_color_code(gchar *buffer,
 
   // Set pointers to start of buffers
   temp_buffer_ptr = temp_buffer;
-  buffer_ptr = buffer;
+  buffer_ptr_start = buffer;
+  buffer_ptr_end = buffer;
 
-  while(1)
+  while(*buffer_ptr_end != '\0')
   {
-    if(*buffer == '\e')
+    // Find beginning of copy section
+    if(*buffer_ptr_start == '\e')
     {
-      // Advance past 'm' is found;
-      while(*buffer != 'm')
-        buffer++;
-      buffer++;
+      while(*buffer_ptr_start != 'm')
+      {
+        if(*buffer_ptr_start == '\0')
+        {
+          // Return with error if escape code isn't terminated
+          free(temp_buffer);
+          return -1;
+        }
+        buffer_ptr_start++;
+      }
+      buffer_ptr_start++;
+    }
+
+    // Find end of copy section
+    buffer_ptr_end = buffer_ptr_start;
+    while(*buffer_ptr_end != '\0')
+    {
+      if(*buffer_ptr_end == '\e')
+      {
+        buffer_ptr_end--;
+        break;
+      }
+
+      buffer_ptr_end++;
+    }
+
+    // Copy text
+    copy_size = buffer_ptr_end - buffer_ptr_start;
+    memcpy(temp_buffer_ptr, buffer_ptr_start, copy_size);
+    temp_buffer_ptr += copy_size;
+
+    // Check to see if we're at the end of the buffer
+    if(*buffer_ptr_end != '\0')
+    {
+      buffer_ptr_end++;
+      buffer_ptr_start = buffer_ptr_end;
     }
   }
+
+  // Copy temp buffer into original buffer
+  strncpy(buffer, temp_buffer, buffer_size);
 
   free(temp_buffer);
   return 0;
@@ -72,24 +111,27 @@ execute_command(gchar *command,
                 gint   return_buffer_size)
 {
   FILE *fp;
-  char buffer[BUFFER_SIZE];
-
-  gint i;
   gint character;
+  int i;
 
+  // Execute command
   fp = popen(command, "r");
   if(fp == NULL)
     return -1;
 
+  // Read in result
   i = 0;
-  while (i<BUFFER_SIZE)
+  while (i<return_buffer_size)
   {
     character = fgetc(fp);
     if(character == EOF)
       break;
 
-    buffer[i++] = (gchar) character;
+    return_buffer[i++] = (gchar) character;
   }
+
+  // Strip ANSI color codes from result
+  strip_ansi_color_code(return_buffer, return_buffer_size);
 
 #ifdef DEBUG
   g_message("Command:\n%s", command);
